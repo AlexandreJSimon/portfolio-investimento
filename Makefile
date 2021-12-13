@@ -8,4 +8,4 @@ run:
 	@ echo
 	@ echo "Running Portifolio Investimento..."
 	@ echo
-	@ go run ./ -fileName=${fileName} -nAssets=${nAssets}
+	@ go run ./ -fileName=${fileName}

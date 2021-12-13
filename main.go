@@ -6,20 +6,22 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"sort"
 
 	"github.com/AlexandreJSimon/portfolio-investimento/services"
 	"github.com/AlexandreJSimon/portfolio-investimento/services/calc"
+	"github.com/AlexandreJSimon/portfolio-investimento/services/greedy"
+	"github.com/AlexandreJSimon/portfolio-investimento/services/randon"
 	"github.com/gocarina/gocsv"
 )
 
 func main() {
 	//Flags contendo o nome do arquivo e o numero maximo de ativos na carteira
 	fileName := flag.String("fileName", "", "File name")
-	nAssets := flag.Int("nAssets", 0, "Number of Assets")
 	flag.Parse()
 
-	if *fileName == "" || *nAssets == 0 {
-		panic("Arquivo não informado ou numero de ativos inválido !")
+	if *fileName == "" {
+		panic("Arquivo não informado !")
 	}
 
 	//Abrindo o arquivo
@@ -46,10 +48,30 @@ func main() {
 
 	returnRiskCalc := calc.NewService(calc.ServiceInput{Assets: assets})
 
-	for _, v := range returnRiskCalc.Run() {
-		fmt.Println(v)
-	}
+	returnRisk := returnRiskCalc.Run()
 
-	fmt.Println(*fileName)
-	fmt.Println(*nAssets)
+	// Ordena dados
+	sort.Slice(returnRisk, func(i, j int) bool {
+		return returnRisk[i].ReturnRisk < returnRisk[j].ReturnRisk
+	})
+
+	//Printa solução gulosa
+	fmt.Println("Solução com algoritmo Guloso:")
+	algGreedy := greedy.NewService(greedy.ServiceInput{ReturnRisk: returnRisk})
+	gr, grr := algGreedy.Run()
+	for _, v := range gr {
+		fmt.Println(fmt.Sprintf("ativo %s com peso %f", v.Asset, v.Weight))
+	}
+	fmt.Println(fmt.Sprintf("Risco retorno total %f", grr))
+	fmt.Println()
+
+	//Printa solucao aleatoria
+	fmt.Println("Solução com pesos aleatorios:")
+	algRand := randon.NewService((randon.ServiceInput{ReturnRisk: returnRisk}))
+	al, alr := algRand.Run()
+	for _, v := range al {
+		fmt.Println(fmt.Sprintf("ativo %s com peso %f", v.Asset, v.Weight))
+	}
+	fmt.Println(fmt.Sprintf("Risco retorno total %f", alr))
+	fmt.Println()
 }

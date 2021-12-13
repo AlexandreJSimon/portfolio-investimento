@@ -43,7 +43,7 @@ func (s *Service) Run() []*services.AssetsReturnRisk {
 
 	for k, asset := range assets {
 		// verifica se Ativo anterio é diferente do ativo atual ou se é a ultima iteracao
-		if as != asset.Ativo || (k+1) == len(assets) {
+		if as != asset.Ativo {
 			//Calculando Desvio padrão da variação
 			standardDeviation, _ := stats.StandardDeviationSample(variance)
 			// Calculando media do valor total
@@ -80,6 +80,23 @@ func (s *Service) Run() []*services.AssetsReturnRisk {
 		//Preço e ativo que serão comparados com os valores da proxima iteração
 		pr = asset.Preco
 		as = asset.Ativo
+
+		if (k + 1) == len(assets) {
+			//Calculando Desvio padrão da variação
+			standardDeviation, _ := stats.StandardDeviationSample(variance)
+			// Calculando media do valor total
+			mean, _ := stats.Mean(values)
+			// Calculando risco normalizado %
+			rn = standardDeviation / mean * 100
+			//Calculando o retorno total %
+			rt = (((dividends + pr) - iv) / iv) * 100
+			assetsReturnRisk = append(assetsReturnRisk, &services.AssetsReturnRisk{
+				// Ativo
+				Asset: as,
+				//Calculando Risco do retorno %
+				ReturnRisk: ((rn / rt) * 100),
+			})
+		}
 	}
 	return assetsReturnRisk
 }

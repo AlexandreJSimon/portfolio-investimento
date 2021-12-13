@@ -13,4 +13,5 @@ type Assets struct {
 type AssetsReturnRisk struct {
 	Asset      string
 	ReturnRisk float64
+	Weight     float64
 }
